@@ -1,0 +1,26 @@
+#! /bin/bash
+#PBS -S /bin/bash
+#PBS -l walltime=24:00:00
+#PBS -l procs=1
+#PBS -l mem=2gb
+#PBS -t 1-21
+# Get indexnumber for chromosomes
+i=$PBS_ARRAYID
+d="I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI"
+c=$(echo $d | cut -f $i -d " ")
+# Population names
+a="MAYR"; b="RDSP"
+# Choose SAF file based on autosome or sex chromosome
+cat $PBS_O_WORKDIR/../../regions/windows.chr$c".GLA.10k.bed" | \
+awk '{print "echo \\\""$1":"$2"-"$3"\\\" > '$PBS_O_WORKDIR'/'$i'.rf; "'\
+'"angsd -b '$PBS_O_WORKDIR'/../bamlists/'$a'.GLA.bfl -out '$PBS_O_WORKDIR'/tmp.'$a'.'$i'"'\
+'" -doSaf 1 -GL 2 -rf '$PBS_O_WORKDIR'/'$i'.rf -minQ 17 -minMapQ 17"'\
+'" -fai ~/ref-genome/GASACUGLAZER2015.fai -anc ~/ref-genome/GASACUGLAZER2015.fa; "'\
+'"angsd -b '$PBS_O_WORKDIR'/../bamlists/'$b'.GLA.bfl -out '$PBS_O_WORKDIR'/tmp.'$b'.'$i'"'\
+'" -doSaf 1 -GL 2 -rf '$PBS_O_WORKDIR'/'$i'.rf -minQ 17 -minMapQ 17"'\
+'" -fai ~/ref-genome/GASACUGLAZER2015.fai -anc ~/ref-genome/GASACUGLAZER2015.fa; "'\
+'"echo -n \\\""$1" "$2" "$3" \\\"; "'\
+'"realSFS '$PBS_O_WORKDIR'/tmp.'$a'.'$i'.saf.idx '$PBS_O_WORKDIR'/tmp.'$b'.'$i'.saf.idx"}' | \
+xargs -n 51 | sh | awk '{if(NF>4){print $N}}' > $PBS_O_WORKDIR"/"$a"."$b".GLA.chr"$c".10kwin.sfs"
+rm $PBS_O_WORKDIR"/"$i".rf" $PBS_O_WORKDIR"/"tmp.*.$i.*
+
