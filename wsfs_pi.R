@@ -3,6 +3,7 @@
 # (c) David A. Marques, 2018
 # Usage: wsfs_pi.R -w sfsfile -b bedfile -o outfile
 # Computes nucleotide diversity pi from multidimensional SFS
+# v1.1: bug-fix in folding the SFS (diagonals were counted twice)
 
 # Load libaries
 library(optparse)
@@ -65,7 +66,11 @@ derived1maf=function(d1dsfs){
   m1dsfs=matrix(0,ncol=n1)
   m1dsfs[1:ceiling(n1/2)]=unlist(d1dsfs[1:ceiling(n1/2)])
   for(k in 0:(ceiling(n1/2)-1)){
-    m1dsfs[1,k+1]=m1dsfs[1,k+1]+d1dsfs[n1-k]
+    if(k+1==n1-k){
+      m1dsfs[1,k+1]=(m1dsfs[1,k+1]+d1dsfs[n1-k])/2
+    }else{
+      m1dsfs[1,k+1]=m1dsfs[1,k+1]+d1dsfs[n1-k]
+    }
   }
   m1dsfs
 }
